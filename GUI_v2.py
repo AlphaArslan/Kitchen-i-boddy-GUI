@@ -108,7 +108,7 @@ def rmv_window():
                                            command= manual_remove_cb)
     manual_remove_btn.place(relx=0.75, rely=0.5, anchor=CENTER)
 
-    # barcode scan add item
+    # barcode scan remove item
     barcode_scan_remove_btn = Button(lower_half, text= "Barcode Scan",
                                                  bg= "#910c20",
                                                  fg="white",
