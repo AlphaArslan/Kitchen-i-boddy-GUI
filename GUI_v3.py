@@ -1,13 +1,48 @@
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 
-from Callback import *
+# inventory items
+items = [   "item1 - Expiration Date - number",
+            "item2 - Expiration Date - number",
+            "item3 - Expiration Date - number"  ]
 
 # main window
 window = Tk()
 window.title("Kitchen i-boddy")
 window.geometry("800x480")
 window.config(background="#280d69")
+
+####################################################
+# Callbacks
+def barcode_scan_add_cb():
+    pass
+
+def manual_add_cb(name, year,month,day , num, parent):
+    # check inputs
+    if  name.get("1.0","end-1c") == "Enter Item Name" or \
+        year.get() == "Year" or month.get() == "Month" or \
+        day.get() == "Day" :
+        # warning message
+        messagebox.showwarning("Warning", "Enter Item Info", parent= parent)
+    else:
+        items.append("{} - {}/{}/{} - {}".format(   name.get("1.0","end-1c"),
+                                                year.get(),
+                                                month.get(),
+                                                day.get(),
+                                                num.get()    ))
+        messagebox.showinfo("Done", "Item was added to inventory", parent= parent)
+
+def barcode_scan_remove_cb():
+    pass
+
+def invt_rmv_selected_cb(chk_var_list , chk_btn_list):
+    for i in range(len(items)-1, -1, -1):
+        if chk_var_list[i].get() == True:
+            chk_btn_list[i].place_forget()
+            del items[i]
+
+
 
 ####################################################
 # a window that pop-up when u click the Add button
@@ -76,8 +111,15 @@ def add_window():
     manual_add_btn = Button(upper_half, text= "Manual Add",
                                            bg="#5780d9",
                                            font=("Arial Black", 20),
-                                           command= manual_add_cb)
+                                           command= lambda: manual_add_cb(  item_name_tb,
+                                                                    exp_year_combo,
+                                                                    exp_month_combo,
+                                                                    exp_day_combo,
+                                                                    items_num_spin,
+                                                                    add_win))
     manual_add_btn.place(relx=0.75, rely=0.5, anchor=CENTER)
+
+
 
     # barcode scan add item
     barcode_scan_add_btn = Button(lower_half, text= "Barcode Scan",
@@ -126,44 +168,33 @@ def invt_window():
     invt_frame = Frame(invt_win, bg="#e0c1c8")
     invt_frame.pack(expand=1, fill='both')
 
-    items = [   "item1 - Expiration Date - number",
-                "item2 - Expiration Date - number",
-                "item3 - Expiration Date - number",
-                "item4 - Expiration Date - number",
-                "item5 - Expiration Date - number",
-                "item6 - Expiration Date - number",
-                "item7 - Expiration Date - number",
-                "item8 - Expiration Date - number",
-                "item1 - Expiration Date - number",
-                "item2 - Expiration Date - number",
-                "item3 - Expiration Date - number",
-                "item4 - Expiration Date - number",
-                "item5 - Expiration Date - number",
-                "item6 - Expiration Date - number",
-                "item7 - Expiration Date - number",
-                "item8 - Expiration Date - number"  ]
-
     chk_vars_list = []
+    chk_btn_list = []
+
     for _ in range(len(items)):
         chk_vars_list.append(BooleanVar())
 
     for i in range(len(items)):
-        Checkbutton(        invt_frame,
+        tmp = Checkbutton(        invt_frame,
                             height= 1,
                             width=  26,
                             text= items[i],
                             font= ("Arial Black", 12),
                             var=chk_vars_list[i]
-                            ).place(relx= (i//10) / 2.5 + 0.02,
+                            )
+        chk_btn_list.append(tmp)
+        tmp.place(relx= (i//10) / 2.5 + 0.02,
                                     rely= (i%10) / 10 + 0.02,
                                     anchor= NW)
+
 
     remove_selected_btn = Button(   invt_frame, text= "Remove Selected",
                                     bg="#910c20",
                                     fg="white",
                                     font= ("Arial Black", 16),
                                     height= 1,
-                                    width= 15)
+                                    width= 15,
+                                    command = lambda : invt_rmv_selected_cb(chk_vars_list, chk_btn_list))
     remove_selected_btn.place(relx= 0.83, rely= 0.92, anchor= CENTER)
 
 ####################################################
