@@ -1,6 +1,10 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+import requests
+
+# upc database API key
+apikey = '4DA86F8E74DDEB9BD1FF740C4AE62410'
 
 # inventory items
 items = [   "item1 - Expiration Date - number",
@@ -16,24 +20,37 @@ window.config(background="#280d69")
 ####################################################
 # Callbacks
 def barcode_scan_add_cb():
-    pass
+    # prompt " waiting for barcode scanner "
+    upc = input("waiting for barcode scanner\n")
 
-def manual_add_cb(name, year,month,day , num, parent):
+    # get the item Info
+    response = requests.get('https://api.upcdatabase.org/product/' + (upc) + "?apikey=" + apikey)
+    item_name = response.text.partition('"title":"')[2].partition('","alias"')[0]
+
+    # call manual_add_cb
+    manual_add_cb(item_name, "None", "None", "None", "1")
+    
+
+def manual_add_cb(name, year,month,day , num, parent= window):
     # check inputs
-    if  name.get("1.0","end-1c") == "Enter Item Name" or \
-        year.get() == "Year" or month.get() == "Month" or \
-        day.get() == "Day" :
+    if  name == "Enter Item Name" or \
+        year == "Year" or month == "Month" or \
+        day == "Day" :
         # warning message
         messagebox.showwarning("Warning", "Enter Item Info", parent= parent)
     else:
-        items.append("{} - {}/{}/{} - {}".format(   name.get("1.0","end-1c"),
-                                                year.get(),
-                                                month.get(),
-                                                day.get(),
-                                                num.get()    ))
+        items.append("{} - {}/{}/{} - {}".format(   name,
+                                                year,
+                                                month,
+                                                day,
+                                                num    ))
         messagebox.showinfo("Done", "Item was added to inventory", parent= parent)
 
 def barcode_scan_remove_cb():
+    # prompt " waiting for barcode scanner "
+    # get the item Info
+    # find item in the items list
+    # delete it
     pass
 
 def invt_rmv_selected_cb(chk_var_list , chk_btn_list):
@@ -111,11 +128,12 @@ def add_window():
     manual_add_btn = Button(upper_half, text= "Manual Add",
                                            bg="#5780d9",
                                            font=("Arial Black", 20),
-                                           command= lambda: manual_add_cb(  item_name_tb,
-                                                                    exp_year_combo,
-                                                                    exp_month_combo,
-                                                                    exp_day_combo,
-                                                                    items_num_spin,
+                                           command= lambda: manual_add_cb(
+                                                                    item_name_tb.get("1.0","end-1c"),
+                                                                    exp_year_combo.get(),
+                                                                    exp_month_combo.get(),
+                                                                    exp_day_combo.get(),
+                                                                    items_num_spin.get(),
                                                                     add_win))
     manual_add_btn.place(relx=0.75, rely=0.5, anchor=CENTER)
 
