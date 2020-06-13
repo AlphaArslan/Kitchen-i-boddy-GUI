@@ -19,17 +19,23 @@ window.config(background="#280d69")
 
 ####################################################
 # Callbacks
-def barcode_scan_add_cb():
+def barcode_scan_add_cb(item_name_tb, parent):
     # prompt " waiting for barcode scanner "
     upc = input("waiting for barcode scanner\n")
 
     # get the item Info
     response = requests.get('https://api.upcdatabase.org/product/' + (upc) + "?apikey=" + apikey)
-    item_name = response.text.partition('"title":"')[2].partition('","alias"')[0]
 
-    # call manual_add_cb
-    manual_add_cb(item_name, "None", "None", "None", "1")
-    
+    # check if item is found on the database
+    if response.json()["success"] == True:
+        item_name = response.json()["title"]
+        # update item name text box
+        item_name_tb.delete('1.0', END)
+        item_name_tb.insert(END, item_name)
+    else:
+        messagebox.showwarning("Warning", "Item was not found online.\nPlease add it manually."
+                                        , parent= parent)
+
 
 def manual_add_cb(name, year,month,day , num, parent= window):
     # check inputs
@@ -46,12 +52,33 @@ def manual_add_cb(name, year,month,day , num, parent= window):
                                                 num    ))
         messagebox.showinfo("Done", "Item was added to inventory", parent= parent)
 
-def barcode_scan_remove_cb():
+def barcode_scan_remove_cb(parent):
     # prompt " waiting for barcode scanner "
+    upc = input("waiting for barcode scanner\n")
+
     # get the item Info
-    # find item in the items list
-    # delete it
-    pass
+    response = requests.get('https://api.upcdatabase.org/product/' + (upc) + "?apikey=" + apikey)
+
+
+    # check if item is found on the database
+    if response.json()["success"] == True:
+        item_name = response.json()["title"]
+        # check if item is in the inventory
+        item_found = False
+        for i in range(len(items)):
+            if items[i].split(' - ')[0] == item_name:
+                item_found = True
+                del items[i]
+                messagebox.showinfo("Done", "Item was removed from inventory"
+                                    , parent= parent)
+                break
+        if not item_found:
+            messagebox.showwarning("Warning", "Item is not found in the inventory."
+                                            , parent= parent)
+    else:
+        messagebox.showwarning("Warning", "Item was not found online.\nPlease add it manually."
+                                        , parent= parent)
+
 
 def invt_rmv_selected_cb(chk_var_list , chk_btn_list):
     for i in range(len(items)-1, -1, -1):
@@ -143,7 +170,7 @@ def add_window():
     barcode_scan_add_btn = Button(lower_half, text= "Barcode Scan",
                                                  bg= "#5780d9",
                                                  font= ("Arial Black", 20),
-                                                 command= barcode_scan_add_cb)
+                                                 command= lambda :barcode_scan_add_cb(item_name_tb, add_win))
     barcode_scan_add_btn.place(relx=0.5, rely=0.5, anchor=CENTER)
 
 ####################################################
@@ -173,7 +200,7 @@ def rmv_window():
                                                  bg= "#910c20",
                                                  fg="white",
                                                  font= ("Arial Black", 20),
-                                                 command= barcode_scan_remove_cb)
+                                                 command= lambda :barcode_scan_remove_cb(parent=rmv_win))
     barcode_scan_remove_btn.place(relx=0.5, rely=0.5, anchor=CENTER)
 
 ####################################################
